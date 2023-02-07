@@ -353,9 +353,14 @@ separate_fields(<<>>, _, {_, PAcc, BAcc}) ->
     {PAcc, lists:reverse(BAcc)};
 separate_fields(<<0:8/big>>, _, {N, PAcc, BAcc}) ->
     {[{0, N}|PAcc], lists:reverse([<<>>|BAcc])};
-separate_fields(<<P:8/big, R/binary>>, <<L:8/big, Bin/binary>>, {N, PAcc, BAcc}) ->
-    <<Val:L/binary, Rest/binary>> = Bin,
-    separate_fields(R, Rest, {N+1, [{P, N}|PAcc], [Val|BAcc]}).
+separate_fields(<<P:8/big, R/binary>>, <<L:8/big, Bin/binary>> = Field, {N, PAcc, BAcc}) ->
+    case (byte_size(Bin) + 1) =< L of
+        true ->
+            separate_fields(<<>>, <<>>, {N+1, [{P, N}|PAcc], [Field | BAcc]});
+        false ->
+            <<Val:L/binary, Rest/binary>> = Bin,
+            separate_fields(R, Rest, {N+1, [{P, N}|PAcc], [Val|BAcc]})
+    end.
 
 -define(IS_SCCP_MGMT,
         #{routing_indicator := subsystem_number, subsystem_number := management}).
@@ -803,6 +808,9 @@ decode_parameters(<<IEI:8/big, Len:8/big, Bin0/binary>>, Os, Acc) ->
         {value, {Name, _, _}, NOs} ->
             Par = decode_parameter(Name, V),
             decode_parameters(Rest, NOs, Acc#{Name => Par});
+        {value, {Name, _}, NOs} ->
+            Par = decode_parameter(Name, V),
+            decode_parameters(Rest, NOs, Acc#{Name => Par});
         false ->
             decode_parameters(Rest, Os, Acc)
     end.
@@ -923,7 +931,7 @@ decode_parameter(data, Bin) ->
     Bin;
 decode_parameter(segmentation, Bin) ->
     <<F:1, C:1, _Spare:2, Rem:4, LocalRef:3/binary>> = Bin,
-    #{first_segment_indication => 0 == F,
+    #{first_segment_indication => 0,
       class => C,
       remaining_segments => Rem,
       local_reference => LocalRef};
@@ -1179,7 +1187,7 @@ encode_parameter(refusal_cause, RC) ->
 encode_parameter(data, Bin) ->
     Bin;
 encode_parameter(segmentation, V) ->
-    F = maps:get(first_segment_indication, V, true),
+    F = maps:get(first_segment_indication, V, 0),
     C = maps:get(class, V, 0),
     Rem = maps:get(remaining_segments, V, 0),
     LR = rand:uniform(2#1111)-1,
