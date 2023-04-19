@@ -1361,8 +1361,8 @@ encode_parameter(long_data, Bin) ->
 decode_address(<<NR:1, RI:1, GTI:4, SSNI:1, PCI:1, Bin0/binary>>) ->
     {PC, Bin1} = case PCI of
                      0 -> {undefined, Bin0};
-                     1 -> <<LSB:8, 0:2, MSB:6, Rest0/binary>> = Bin0,
-                          {<<MSB:6, LSB:8>>, Rest0}
+                     1 -> <<PCBin:2/binary, Rest0/binary>> = Bin0,
+                          {PCBin, Rest0}
                  end,
     {SSN, Bin2} = case SSNI of
                       0 -> {undefined, Bin1};
@@ -1500,7 +1500,7 @@ encode_address(#{national_use_indicator := NR,
              2#0000 ->
                  <<>>
          end,
-    <<NR:1, RI:1, GTI:4, SSNI:1, PCI:1, SSNBin/binary, PCBin/binary, GT/binary>>.
+    <<NR:1, RI:1, GTI:4, SSNI:1, PCI:1, PCBin/binary, SSNBin/binary, GT/binary>>.
 
 compose_encoding_scheme(unknown, _) ->
     2#0000;
