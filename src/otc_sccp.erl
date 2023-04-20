@@ -1297,10 +1297,16 @@ encode_gt_part(#{encoding_scheme := bcd,
 encode_gt_part(#{encoding_scheme := national,
                  address := GT}) ->
     GT.
-
-encode_address(#{national_use_indicator := NR,
+encode_address(#{national_use_indicator := NR0,
                  routing_indicator := RoutingInd
                 } = Address) ->
+    NR = 
+    case NR0 of
+        undefined ->
+             0;
+        NR0 ->
+            NR0
+    end,
     {PCI, PCBin} = case maps:get(point_code, Address, undefined) of
                        undefined -> {0, <<>>};
                        PC -> {1, PC}
