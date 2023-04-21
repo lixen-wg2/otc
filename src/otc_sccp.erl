@@ -1424,7 +1424,6 @@ compose_ssn(tc_test_responder) -> ?SCCP_SSN_TC_TEST_RESPONDER;
 compose_ssn(css) -> ?SCCP_SSN_NAT_CSS;
 compose_ssn(pcap) -> ?SCCP_SSN_NAT_PCAP;
 compose_ssn(bss) -> ?SCCP_SSN_NAT_BSS;
-compose_ssn(msc) -> ?SCCP_SSN_NAT_MSC;
 compose_ssn(smlc) -> ?SCCP_SSN_NAT_SMLC;
 compose_ssn(bss_om) -> ?SCCP_SSN_NAT_BSS_OM;
 compose_ssn(bssap) -> ?SCCP_SSN_NAT_BSSAP;
